@@ -1,0 +1,80 @@
+Checking URLs from: second.txt
+Filters: (none – showing all)
+----------------------------------------
+x.com/hey → Active (200 OK)
+https://discord.gg/tRNUXNPMSV → Active (200 OK)
+----------------------------------------
+
+Active (200 OK):
+x.com/hey
+
+Redirected (3xx):
+  (none)
+
+Not found (404):
+  (none)
+
+Other errors:
+  (none)
+
+Timeouts / failed:
+  (none)
+
+Done. (1 URLs processed)
+Active (200 OK)
+----------------------------------------
+
+Active (200 OK):
+https://ajxchapman.github.io/
+https://blog.intigriti.com
+https://blog.zsec.uk/
+https://buer.haus/
+https://discord.gg/tRNUXNPMSV
+http://securityflow.io
+https://honoki.net/
+https://itm4n.github.io
+https://lab.wallarm.com
+https://philippeharewood.com
+https://philippeharewood.com/
+https://snowscan.io/
+https://twitter.com/0dayCTF
+https://twitter.com/Assass1nmarcos
+https://twitter.com/BugBountyHunt3r
+https://twitter.com/eboda_/
+https://twitter.com/erbbysam
+https://twitter.com/eur0pa_/
+https://twitter.com/farah_hawa01
+https://twitter.com/GoogleVRP
+https://twitter.com/hackthebox_eu
+https://twitter.com/harris0ft
+https://twitter.com/InfoSecComm
+https://twitter.com/intigriti
+https://twitter.com/_JohnHammond
+https://twitter.com/oooverflow
+https://twitter.com/pdiscoveryio
+https://twitter.com/RealTryHackMe
+https://twitter.com/ReconVillage
+https://twitter.com/TCMSecurity
+https://twitter.com/theXSSrat
+https://twitter.com/unlikeyou10
+https://twitter.com/WebSecAcademy
+https://twitter.com/XssPayloads
+
+Redirected (3xx):
+  (none)
+
+Not found (404):
+  (none)
+
+Other errors:
+https://medium.com/@aishwaryakendle/
+https://medium.com/@akshukatkar/
+https://medium.com/tag/bug-bounty-tips
+https://medium.com/tag/bugbounty-writeup
+https://techblog.mediaservice.net
+https://www.n00py.ioairlanggamurthi/
+
+Timeouts / failed:
+  (none)
+
+Done. (40 URLs processed)
