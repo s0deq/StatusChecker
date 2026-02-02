@@ -1,9 +1,9 @@
-
 show_help() {
     cat << 'EOF'
 Usage: ./statuschecker.sh [OPTIONS] <input_file> [output_file]
 
 Checks URLs from a file and groups them by status (200 OK, 404 Not Found, 3xx Redirects, other errors, timeouts).
+Detects soft 404s (200 OK with "not found" messages) for better accuracy on social sites.
 
 Options:
   -h, --help          Show this help message and exit
@@ -14,6 +14,7 @@ Options:
                       - 3xx: Redirected (any 300-399)
                       - Other numbers: Errors matching that code
                       - 'timeout': Failed connections/timeouts
+                      - 'inactive': Soft 404s on 200
 
 Arguments:
   input_file          File with one URL per line (required)
@@ -35,11 +36,10 @@ Box_st() { echo "
 ║                                      ║
 ╚══════════════════════════════════════╝ "
 }
-
 show_version() {
-    Box_st
-    echo "StatusChecker v1.1"
+    echo "StatusChecker v1.2"
 }
+
 # Defaults
 filter_codes=()
 output_file="Result.txt"
@@ -100,11 +100,12 @@ fi
 
 # Temporary files for groups
 tmp_200=$(mktemp)
+tmp_inactive=$(mktemp)  # New for soft 404s
 tmp_404=$(mktemp)
 tmp_3xx=$(mktemp)
 tmp_error=$(mktemp)
 tmp_timeout=$(mktemp)
-Box_st
+
 echo "Checking URLs from: $input_file" | tee -a "$output_file"
 echo "Filters: ${filter_codes[*]:-(none – showing all)}" | tee -a "$output_file"
 echo "----------------------------------------" | tee -a "$output_file"
@@ -124,9 +125,18 @@ while IFS= read -r url || [[ -n "$url" ]]; do
         echo "$msg" | tee -a "$output_file"
         echo "$url" >> "$tmp_timeout"
     elif [ "$status" = "200" ]; then
-        msg="Active (200 OK)"
-        echo "$msg" | tee -a "$output_file"
-        echo "$url" >> "$tmp_200"
+        # Check for soft 404 / inactive
+        body=$(curl -s -L --max-time 10 --user-agent "Mozilla/5.0" "$url" | head -c 20000 | tr '[:upper:]' '[:lower:]')
+        errors=("doesn't exist" "this account doesn" "not found" "something went wrong" "suspended" "unavailable" "gone" "invalid" "this page doesn" "try searching" "channel does not exist" "invite invalid")
+        if echo "$body" | grep -q -i -E "${errors[*]/ /|}"; then
+            msg="Likely inactive (200 OK + error detected)"
+            echo "$msg" | tee -a "$output_file"
+            echo "$url" >> "$tmp_inactive"
+        else
+            msg="Active (200 OK)"
+            echo "$msg" | tee -a "$output_file"
+            echo "$url" >> "$tmp_200"
+        fi
     elif [ "$status" = "404" ]; then
         msg="Not found (404)"
         echo "$msg" | tee -a "$output_file"
@@ -154,9 +164,10 @@ should_show() {
     fi
     case "$group" in
         200) [[ " ${filter_codes[*]} " =~ " 200 " ]] && return 0 ;;
+        inactive) [[ " ${filter_codes[*]} " =~ " inactive " ]] && return 0 ;;
         404) [[ " ${filter_codes[*]} " =~ " 404 " ]] && return 0 ;;
         3xx) for f in "${filter_codes[@]}"; do [[ $f =~ ^3 ]] && return 0; done ;;
-        error) for f in "${filter_codes[@]}"; do [ "$f" = "$status" ] && return 0; done ;;  # Note: status is per URL, but for group, assume if any non-standard
+        error) for f in "${filter_codes[@]}"; do [[ $f =~ ^[45] ]] && return 0; done ;;  # Basic for 4xx/5xx
         timeout) [[ " ${filter_codes[*]} " =~ " timeout " || " ${filter_codes[*]} " =~ " 0 " ]] && return 0 ;;
     esac
     return 1
@@ -168,6 +179,16 @@ should_show() {
         echo "Active (200 OK):"
         if [ -s "$tmp_200" ]; then
             sort -u "$tmp_200"
+        else
+            echo "  (none)"
+        fi
+        echo ""
+    fi
+
+    if should_show inactive; then
+        echo "Likely inactive (soft 404 on 200):"
+        if [ -s "$tmp_inactive" ]; then
+            sort -u "$tmp_inactive"
         else
             echo "  (none)"
         fi
@@ -218,7 +239,7 @@ should_show() {
 } | tee -a "$output_file"
 
 # Cleanup
-rm -f "$tmp_200" "$tmp_404" "$tmp_3xx" "$tmp_error" "$tmp_timeout"
+rm -f "$tmp_200" "$tmp_inactive" "$tmp_404" "$tmp_3xx" "$tmp_error" "$tmp_timeout"
 
 echo ""
 echo "Grouped results saved to: $output_file (if not '-')"
