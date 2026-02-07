@@ -23,12 +23,13 @@ Arguments:
                       Use '-' to print only to console (no file)
 
 Examples:
-  ./statuschecker.sh urls.txt
-  ./statuschecker.sh twitter.txt --filter 200,404 Result-200-404.txt
-  ./statuschecker.sh links.txt --filter timeout -
-  ./statuschecker.sh --help
+  bash statuschecker.sh urls.txt
+  bash statuschecker.sh --filter 200,404 input.txt Result-200-404.txt
+  bash statuschecker.sh links.txt --filter timeout -
+  bash statuschecker.sh --help
 EOF
 }
+BOLD_GREEN='\033[1;32m'
 Box_st() { echo "
 ╔══════════════════════════════════════╗
 ║                                      ║
@@ -37,7 +38,8 @@ Box_st() { echo "
 ╚══════════════════════════════════════╝ "
 }
 show_version() {
-    echo "StatusChecker v1.2"
+    echo -e "${BOLD_GREEN} StatusChecker v1.2 ${NC}"
+    # echo "StatusChecker v1.2"
 }
 
 # Defaults
@@ -52,6 +54,7 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         --version)
+            Box_st
             show_version
             exit 0
             ;;
